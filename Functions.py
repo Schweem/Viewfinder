@@ -31,7 +31,7 @@ def removeZero(df):
 # corrNoNAN: Input(Correlation matrix)
 # remove NAN values from correlation matrix
 def corrNoNAN(corr):
-    corrClean = ~corr.isna().all()  # get all values in our matrix that are not Nan
+    corrClean = ~corr.isnwa().all()  # get all values in our matrix that are not Nan
     corr = corr.loc[corrClean, corrClean]
     return corr
 
