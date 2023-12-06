@@ -10,38 +10,56 @@ import streamlit as st
 
 import Functions as tools
 
-data = tools.importData('data/spookems.csv')
-numericData = tools.removeZero(tools.removeNAN(data))
-cleanData = tools.corrNoNAN(numericData.corr())
+data = None
+numericData = None
+cleanData = None
 
 st.set_page_config(layout="wide")
 st.sidebar.title('Tools')
+
 selectedPage = st.sidebar.radio('Available: ',
                                 ['Home', 'Heatmap and Correlation Matrix', 'Raw Data', 'Scatterplot (Two Var.)',
                                  'Histogram (Single Var.)', 'Data Quality Report', 'Regression Analysis'])
 
 if selectedPage == 'Home':
-    # Display Current Date
-    currentDate = datetime.datetime.now().strftime("%B %d, %Y")  # Format: Month day, Year
-    st.subheader(currentDate)
+    if data is not None: #this is the problem endless loop, data is set to none on refresh
+        # Display Current Date
+        currentDate = datetime.datetime.now().strftime("%B %d, %Y")  # Format: Month day, Year
+        st.subheader(currentDate)
 
-    col1, col2 = st.columns(2)
-    col1.header('Observation Count:')
-    col1.subheader(data.shape[0])
-    col2.header('Last Observation: ')
-    lastTimestamp = data['Timestamp'].iloc[-1]
-    col2.subheader(lastTimestamp)
+        col1, col2 = st.columns(2)
+        col1.header('Observation Count:')
+        col1.subheader(data.shape[0])
+        col2.header('Last Observation: ')
+        lastTimestamp = data['Timestamp'].iloc[-1]
+        col2.subheader(lastTimestamp)
 
-    st.write('Most Recent Samples: ')
-    recentData = data.tail(5)  # get the last 5 items from the dataframe
-    st.table(recentData)
+        st.write('Most Recent Samples: ')
+        recentData = data.tail(5)  # get the last 5 items from the dataframe
+        st.table(recentData)
 
-    st.subheader('Strongest Relationships: ')
-    with st.expander("Set Number of Rows"):
-        cutoff = st.slider("Select Number Cutoff:", 1, cleanData.shape[0], 5, 1)
-        strongestRelations = tools.findStrongest(cleanData, cutoff)
-    st.write("Top Correlations with Cutoff of:", cutoff)
-    st.table(strongestRelations)
+        st.subheader('Strongest Relationships: ')
+        with st.expander("Set Number of Rows"):
+            cutoff = st.slider("Select Number Cutoff:", 1, cleanData.shape[0], 5, 1)
+            strongestRelations = tools.findStrongest(cleanData, cutoff)
+        st.write("Top Correlations with Cutoff of:", cutoff)
+        st.table(strongestRelations)
+    else:
+        st.title("Welcome")
+        st.subheader("Select a CSV file for upload")
+        st.stop()
+        # Upload CSV
+        uploadedFile = st.file_uploader("Upload a CSV file", type=["csv"])
+
+        if uploadedFile is not None:
+            # Load the uploaded data
+            data = pd.read_csv(uploadedFile)
+
+            # Process the data
+            numericData = tools.removeZero(tools.removeNAN(data))
+            cleanData = tools.corrNoNAN(numericData.corr())
+
+            st.experimental_rerun()
 
 elif selectedPage == 'Heatmap and Correlation Matrix':
     st.title('Matrix Heatmap and Correlation Matrix')
