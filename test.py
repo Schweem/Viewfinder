@@ -1,4 +1,5 @@
 import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,8 +15,17 @@ if 'data' not in st.session_state:
     st.session_state.data = None
 
 # Configure layout
-st.set_page_config(layout="wide")
-st.sidebar.title('Tools')
+st.set_page_config(page_title="Wayfinder",
+                   page_icon=":bar_chart:",
+                   layout="wide"
+                   )
+st.sidebar.title("Wayfinder")
+st.sidebar.subheader("Tools: ")
+
+# Available pages
+selectedPage = st.sidebar.radio('Available: ',
+                                ['Home', 'Heatmap and Correlation Matrix', 'Scatterplot (Two Var.)',
+                                 'Histogram (Single Var.)', 'Regression Analysis', 'Data Quality Report', 'Raw Data'])
 
 # Prepare file upload
 if st.session_state.data is not None:
@@ -27,11 +37,6 @@ if st.session_state.data is not None:
         # Process the data
         st.session_state.numericData = tools.removeZero(tools.removeNAN(st.session_state.data))
         st.session_state.cleanData = tools.corrNoNAN(st.session_state.numericData.corr())
-
-# Available pages
-selectedPage = st.sidebar.radio('Available: ',
-                                ['Home', 'Heatmap and Correlation Matrix', 'Raw Data', 'Scatterplot (Two Var.)',
-                                 'Histogram (Single Var.)', 'Regression Analysis', 'Data Quality Report'])
 
 if selectedPage == 'Home':
     if st.session_state.data is None:
@@ -48,7 +53,7 @@ if selectedPage == 'Home':
             # Process the data
             st.session_state.numericData = tools.removeZero(tools.removeNAN(st.session_state.data))
             st.session_state.cleanData = tools.corrNoNAN(st.session_state.numericData.corr())
-            st.experimental_rerun()
+            st.rerun()
 
     if st.session_state.data is not None:
         with st.spinner("Setting up..."):
@@ -75,6 +80,7 @@ if selectedPage == 'Home':
 elif selectedPage == 'Heatmap and Correlation Matrix':
     if st.session_state.data is not None:
         st.title('Matrix Heatmap and Correlation Matrix')
+        st.write("Get an overview of your data, extract broad trends and relationships at a glance")
         st.subheader('Heatmap of Correlation Matrix')
 
         # Dropdown for selecting heatmap color theme
@@ -91,6 +97,7 @@ elif selectedPage == 'Heatmap and Correlation Matrix':
             st.pyplot(plt)
 
         st.subheader('Raw Correlation Matrix')
+        st.write("Explore the raw data points, hone in on specific values")
         st.write(st.session_state.cleanData)
     else:
         tools.uploadFile()
@@ -99,13 +106,19 @@ elif selectedPage == 'Raw Data':
     if st.session_state.data is not None:
         st.title('Raw Data')
         st.write('View and edit the original data file: ')
-        st.data_editor(st.session_state.data)
+        currentData = st.data_editor(st.session_state.data)
+
+        download = st.button("Export modified data")
+        if download:
+            fileName = tools.generateTextReport('rawData')
+            currentData.to_csv(fileName, index=False)
     else:
         tools.uploadFile()
 
 elif selectedPage == 'Scatterplot (Two Var.)':
     if st.session_state.data is not None:
         st.title('Scatterplot of Data')
+        st.write('Explore two variable relationships in your data.')
 
         # Extract x and y from our columns
         xAxisColumn = st.selectbox('Select X-axis:', st.session_state.cleanData.columns)
@@ -113,11 +126,31 @@ elif selectedPage == 'Scatterplot (Two Var.)':
 
         # Plot it
         with st.spinner("Plotting..."):
+            with st.expander("Customize Plot"):
+                # Checkboxes and dropdowns for settings
+                color = st.checkbox('Color mapping')
+                if color:
+                    colorTheme = st.selectbox('Hue Variable', st.session_state.cleanData.columns)
+                else:
+                    colorTheme = None
+
+                size = st.checkbox('Size mapping')
+                if size:
+                    sizeVar = st.selectbox('Size Variable', st.session_state.cleanData.columns)
+                else:
+                    sizeVar = None
+
             fig, ax = plt.subplots(figsize=(17, 7))
-            sns.scatterplot(x=xAxisColumn, y=yAxisColumn, data=st.session_state.cleanData)
+            sns.scatterplot(x=xAxisColumn, y=yAxisColumn, data=st.session_state.cleanData, hue=colorTheme, size=sizeVar)
             plt.xlabel(xAxisColumn)
             plt.ylabel(yAxisColumn)
             st.pyplot(plt)
+            currentGraph = plt
+
+            download = st.button("Save plot")
+            if download:
+                fileName = tools.generateFileName('scatterplot')
+                currentGraph.savefig(fileName, format="pdf")
 
         # Display summary statistics
         st.subheader('Summary Stats')
@@ -163,6 +196,7 @@ elif selectedPage == 'Scatterplot (Two Var.)':
 elif selectedPage == 'Histogram (Single Var.)':
     if st.session_state.data is not None:
         st.title('Histogram of Data')
+        st.write('Explore the distribution of single variables.')
 
         # Extract x and y from our columns
         xAxisColumn = st.selectbox('Select X-axis:', st.session_state.cleanData.columns)
@@ -174,9 +208,15 @@ elif selectedPage == 'Histogram (Single Var.)':
             sns.histplot(x=xAxisColumn, data=st.session_state.cleanData, kde=kdeCheckbox)
             plt.xlabel(xAxisColumn)
             st.pyplot(plt)
-            st.subheader('Summary Stats')
+            currentGraph = plt
+
+            download = st.button("Save plot")
+            if download:
+                fileName = tools.generateFileName('histogram')
+                currentGraph.savefig(fileName, format="pdf")
 
         # Calculate and display relevant summary stats
+        st.subheader('Summary Stats')
         meanVal = np.mean(st.session_state.cleanData[xAxisColumn])
         medianVal = np.median(st.session_state.cleanData[xAxisColumn])
         stdDev = np.std(st.session_state.cleanData[xAxisColumn])
@@ -209,14 +249,14 @@ elif selectedPage == 'Data Quality Report':
         with st.expander('Unique Values'):
             st.subheader('Unique Values Count')
             st.write('Total number of unique values for each feature')
-            uniqueValues = st.session_state.data.nunique() # Get unique items
+            uniqueValues = st.session_state.data.nunique()  # Get unique items
             st.table(uniqueValues)
 
         # Outliers Detection using boxplot
         with st.expander('Outlier Detection'):
             st.subheader('Outliers Detection (Box Plot)')
             st.write('Visual outlier analysis')
-            numericalColumns = st.session_state.data.select_dtypes(include=[np.number]).columns # Numerical columns
+            numericalColumns = st.session_state.data.select_dtypes(include=[np.number]).columns  # Numerical columns
             selectedNumCols = st.selectbox('Select Column for Outlier Analysis', numericalColumns)
             fig, ax = plt.subplots(figsize=(17, 7))
             sns.boxplot(st.session_state.data[selectedNumCols])
@@ -241,6 +281,7 @@ elif selectedPage == 'Data Quality Report':
 elif selectedPage == 'Regression Analysis':
     if st.session_state.data is not None:
         st.title('Regression Analysis')
+        st.write('Plot and explore predictions in your data')
 
         # Select the type of regression
         regressionType = st.selectbox('Select Regression Type:', ['Linear Regression', 'Logistic Regression'])
@@ -248,11 +289,12 @@ elif selectedPage == 'Regression Analysis':
         targetVar = st.selectbox('Select Target Variable:', st.session_state.cleanData.columns)
 
         # Predictor variables
-        predictorVars = st.multiselect('Select Predictor Variables:', st.session_state.cleanData.columns, default=st.session_state.cleanData.columns[0])
+        predictorVars = st.multiselect('Select Predictor Variables:', st.session_state.cleanData.columns,
+                                       default=st.session_state.cleanData.columns[0])
 
         if st.button('Perform Regression'):
             if regressionType == 'Linear Regression':
-                #Linear regression
+                # Linear regression
                 X = st.session_state.cleanData[predictorVars]
                 y = st.session_state.cleanData[targetVar]
 
@@ -295,4 +337,3 @@ elif selectedPage == 'Regression Analysis':
             # More here if I add more models
     else:
         tools.uploadFile()
-        

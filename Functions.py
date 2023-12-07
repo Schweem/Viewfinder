@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
+import secrets  # for filenames
+import string
+
 
 # importData: Input(Data File)
 # Open file and convert to data frame
@@ -44,6 +47,7 @@ def findStrongest(dataFrame, n=10, asc=False):
     highest = upper.stack().sort_values(ascending=asc)
     return highest.head(n)
 
+
 # uploadFile:
 # prompts the user to upload a csv file to look at the data
 def uploadFile():
@@ -59,3 +63,17 @@ def uploadFile():
         st.session_state.numericData = removeZero(removeNAN(st.session_state.data))
         st.session_state.cleanData = corrNoNAN(st.session_state.numericData.corr())
         st.experimental_rerun()
+
+
+# generateFileName : Input(type of graph)
+# use secrets library to generate characters for unique filenames
+def generateFileName(type):
+    fileSuffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    fileOut = f"{type}_{fileSuffix}.pdf"
+    return fileOut
+
+
+def generateTextReport(type):
+    fileSuffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    fileOut = f"{type}_{fileSuffix}.csv"
+    return fileOut
