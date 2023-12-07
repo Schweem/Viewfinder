@@ -44,11 +44,18 @@ def findStrongest(dataFrame, n=10, asc=False):
     highest = upper.stack().sort_values(ascending=asc)
     return highest.head(n)
 
-# TEMPORARILY NOT IN USE
-# MADE FOR CACHING AND EXCHANGING DATA BETWEEN STREAMLIT PAGES
-@st.cache_data
-def loadData(filePath):
-    data = importData(filePath)
-    numericData = removeZero(removeNAN(data))
-    cleanData = corrNoNAN(numericData.corr())
-    return data, numericData, cleanData
+# uploadFile:
+# prompts the user to upload a csv file to look at the data
+def uploadFile():
+    st.subheader("Please upload a CSV to continue")
+    # Upload CSV
+    uploadedFile = st.file_uploader("Upload a CSV file", type=["csv"])
+
+    if uploadedFile is not None:
+        # Load the uploaded data
+        st.session_state.data = pd.read_csv(uploadedFile)
+
+        # Process the data
+        st.session_state.numericData = removeZero(removeNAN(st.session_state.data))
+        st.session_state.cleanData = corrNoNAN(st.session_state.numericData.corr())
+        st.experimental_rerun()
