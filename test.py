@@ -24,8 +24,8 @@ st.sidebar.subheader("Tools: ")
 
 # Available pages
 selectedPage = st.sidebar.radio('Available: ',
-                                ['Home', 'Heatmap and Correlation Matrix', 'Scatterplot (Two Var.)',
-                                 'Histogram (Single Var.)', 'Regression Analysis', 'Data Quality Report', 'Raw Data'])
+                                ['Home', 'Heatmap and Correlation Matrix', 'Scatterplot',
+                                 'Histogram', 'Regression Analysis', 'Data Quality Report', 'Raw Data'])
 
 # Prepare file upload
 if st.session_state.data is not None:
@@ -107,42 +107,37 @@ elif selectedPage == 'Raw Data':
         if 'activeTab' not in st.session_state:  # check if navigated
             st.session_state.activeTab = 'original'
 
-        # Define tabs
-        tabs = ['original', 'numerical', 'clean']
-        tabsItem = st.tabs(tabs)
+        originalTab, numericalTab, cleanTab = st.tabs(["original", "numerical", "clean"])
 
-        # Check which tab is active and update the session state
-        for i, tab in enumerate(tabsItem):
-            if tab:
-                st.session_state.activeTab = tabsItem[i]
-                break
-
-        if st.session_state.activeTab == 'original':
-            print('1')
+        with originalTab:
             st.title('Raw Data')
             st.write('View and edit the original data file: ')
             currentData = st.data_editor(st.session_state.data)
-        elif st.session_state.activeTab == 'numerical':
-            print('2')
+
+            download = st.button("Export modified data", key='rawbutton')
+            if download:
+                fileName = tools.generateTextReport('dataExport')  # update names
+                currentData.to_csv(fileName, index=False)  # write the data
+
+        with numericalTab:
             st.title('Numerical Data')
             st.write('View and edit the numeric data: ')
             currentData = st.data_editor(st.session_state.numericData)
-        elif st.session_state.activeTab == 'clean':
+
+            download = st.button("Export modified data", key='numericbutton')
+            if download:
+                fileName = tools.generateTextReport('dataExport')  # update names
+                currentData.to_csv(fileName, index=False)  # write the data
+
+        with cleanTab:
             st.title('Clean Data')
             st.write('View and edit the cleaned data: ')
             currentData = st.data_editor(st.session_state.cleanData)
 
-            download = st.button("Export modified data")
+            download = st.button("Export modified data", key='cleanbutton')
             if download:
-                if tabs[0]:  # handle tabs
-                    fileName = tools.generateTextReport('rawData')  # update names
-                    currentData.to_csv(fileName, index=False)  # write the data
-                if tabs[1]:
-                    fileName = tools.generateTextReport('numericData')
-                    currentData.to_csv(fileName, index=False)
-                if tabs[2]:
-                    fileName = tools.generateTextReport('cleanData')
-                    currentData.to_csv(fileName, index=False)
+                fileName = tools.generateTextReport('dataExport')  # update names
+                currentData.to_csv(fileName, index=False)  # write the data
     else:
         tools.uploadFile()
 
