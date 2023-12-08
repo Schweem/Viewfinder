@@ -15,11 +15,11 @@ if 'data' not in st.session_state:
     st.session_state.data = None
 
 # Configure layout
-st.set_page_config(page_title="Wayfinder",
+st.set_page_config(page_title="Viewfinder",
                    page_icon=":bar_chart:",
                    layout="wide"
                    )
-st.sidebar.title("Wayfinder")
+st.sidebar.title("Viewfinder")
 st.sidebar.subheader("Tools: ")
 
 # Available pages
