@@ -77,3 +77,21 @@ def generateTextReport(type):
     fileSuffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
     fileOut = f"{type}_{fileSuffix}.csv"
     return fileOut
+
+
+def exportPlot(currentGraph, plotType):
+    fileName = generateFileName(plotType)
+    currentGraph.savefig(fileName, format="pdf")
+    with open(fileName, 'rb') as file:
+        pdf_data = file.read()
+    return pdf_data
+
+def detectOutliers(selectedColumn):
+    Q1 = selectedColumn.quantile(0.25)
+    Q3 = selectedColumn.quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    outliers = selectedColumn[(selectedColumn < lower_bound) | (selectedColumn > upper_bound)]
+    return outliers
+
