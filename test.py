@@ -103,19 +103,50 @@ elif selectedPage == 'Heatmap and Correlation Matrix':
         tools.uploadFile()
 
 elif selectedPage == 'Raw Data':
-    if st.session_state.data is not None:
-        st.title('Raw Data')
-        st.write('View and edit the original data file: ')
-        currentData = st.data_editor(st.session_state.data)
+    if st.session_state.data is not None:  # make sure data isn't empty
+        if 'activeTab' not in st.session_state:  # check if navigated
+            st.session_state.activeTab = 'original'
 
-        download = st.button("Export modified data")
-        if download:
-            fileName = tools.generateTextReport('rawData')
-            currentData.to_csv(fileName, index=False)
+        # Define tabs
+        tabs = ['original', 'numerical', 'clean']
+        tabsItem = st.tabs(tabs)
+
+        # Check which tab is active and update the session state
+        for i, tab in enumerate(tabsItem):
+            if tab:
+                st.session_state.activeTab = tabsItem[i]
+                break
+
+        if st.session_state.activeTab == 'original':
+            print('1')
+            st.title('Raw Data')
+            st.write('View and edit the original data file: ')
+            currentData = st.data_editor(st.session_state.data)
+        elif st.session_state.activeTab == 'numerical':
+            print('2')
+            st.title('Numerical Data')
+            st.write('View and edit the numeric data: ')
+            currentData = st.data_editor(st.session_state.numericData)
+        elif st.session_state.activeTab == 'clean':
+            st.title('Clean Data')
+            st.write('View and edit the cleaned data: ')
+            currentData = st.data_editor(st.session_state.cleanData)
+
+            download = st.button("Export modified data")
+            if download:
+                if tabs[0]:  # handle tabs
+                    fileName = tools.generateTextReport('rawData')  # update names
+                    currentData.to_csv(fileName, index=False)  # write the data
+                if tabs[1]:
+                    fileName = tools.generateTextReport('numericData')
+                    currentData.to_csv(fileName, index=False)
+                if tabs[2]:
+                    fileName = tools.generateTextReport('cleanData')
+                    currentData.to_csv(fileName, index=False)
     else:
         tools.uploadFile()
 
-elif selectedPage == 'Scatterplot (Two Var.)':
+elif selectedPage == 'Scatterplot':
     if st.session_state.data is not None:
         st.title('Scatterplot of Data')
         st.write('Explore two variable relationships in your data.')
@@ -193,7 +224,7 @@ elif selectedPage == 'Scatterplot (Two Var.)':
     else:
         tools.uploadFile()
 
-elif selectedPage == 'Histogram (Single Var.)':
+elif selectedPage == 'Histogram':
     if st.session_state.data is not None:
         st.title('Histogram of Data')
         st.write('Explore the distribution of single variables.')
