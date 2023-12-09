@@ -22,7 +22,7 @@ To set up Viewfinder for yourself:
    pip install -r requirements.txt
 3. Run the app:
    ```bash
-   streamlit run test.py
+   streamlit run viewfinder.py
 
 ## How to Use
 - **Local**
