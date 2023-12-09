@@ -78,7 +78,8 @@ def generateTextReport(type):
     fileOut = f"{type}_{fileSuffix}.csv"
     return fileOut
 
-
+# exportPlot : Input(plot, type of plot)
+# export a generated seaborn plot
 def exportPlot(currentGraph, plotType):
     fileName = generateFileName(plotType)
     currentGraph.savefig(fileName, format="pdf")
@@ -86,12 +87,14 @@ def exportPlot(currentGraph, plotType):
         pdf_data = file.read()
     return pdf_data
 
+
+# detect outliers : Input(type of graph)
+# function for finding outliers of a feature
 def detectOutliers(selectedColumn):
     Q1 = selectedColumn.quantile(0.25)
     Q3 = selectedColumn.quantile(0.75)
     IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    outliers = selectedColumn[(selectedColumn < lower_bound) | (selectedColumn > upper_bound)]
+    lowerBound = Q1 - 1.5 * IQR
+    upperBound = Q3 + 1.5 * IQR
+    outliers = selectedColumn[(selectedColumn < lowerBound) | (selectedColumn > upperBound)]
     return outliers
-
