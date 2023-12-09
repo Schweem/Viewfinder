@@ -30,7 +30,13 @@ To set up Viewfinder for yourself:
   2. **Upload Data**: Use the sidebar to upload a CSV file.
   3. **Explore Data**: Navigate through different tabs to analyze and visualize your data.
 - **Live**
-  1. **Visit**: https://viewfinder.streamlit.app/   
+  1. **Visit**: https://viewfinder.streamlit.app/
+ 
+## Testing 
+If you do not have your own data to test on Viewfinder locate the '**Datasets**' folder in the project directory, several datasets for testing are provided there. 
+- Download a CSV
+- Run the tool
+- Upload the CSV
 
 ## Contributions and Acknowledgments
 - Special thank you to Proffessor Salu for a great semester in full stack. 
