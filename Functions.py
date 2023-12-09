@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
+import secrets  # for filenames
+import string
+
 
 # importData: Input(Data File)
 # Open file and convert to data frame
@@ -44,11 +47,51 @@ def findStrongest(dataFrame, n=10, asc=False):
     highest = upper.stack().sort_values(ascending=asc)
     return highest.head(n)
 
-# TEMPORARILY NOT IN USE
-# MADE FOR CACHING AND EXCHANGING DATA BETWEEN STREAMLIT PAGES
-@st.cache_data
-def loadData(filePath):
-    data = importData(filePath)
-    numericData = removeZero(removeNAN(data))
-    cleanData = corrNoNAN(numericData.corr())
-    return data, numericData, cleanData
+
+# uploadFile:
+# prompts the user to upload a csv file to look at the data
+def uploadFile():
+    st.subheader("Please upload a CSV to continue")
+    # Upload CSV
+    uploadedFile = st.file_uploader("Upload a CSV file", type=["csv"])
+
+    if uploadedFile is not None:
+        # Load the uploaded data
+        st.session_state.data = pd.read_csv(uploadedFile)
+
+        # Process the data
+        st.session_state.numericData = removeZero(removeNAN(st.session_state.data))
+        st.session_state.cleanData = corrNoNAN(st.session_state.numericData.corr())
+        st.experimental_rerun()
+
+
+# generateFileName : Input(type of graph)
+# use secrets library to generate characters for unique filenames
+def generateFileName(type):
+    fileSuffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    fileOut = f"{type}_{fileSuffix}.pdf"
+    return fileOut
+
+
+def generateTextReport(type):
+    fileSuffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    fileOut = f"{type}_{fileSuffix}.csv"
+    return fileOut
+
+
+def exportPlot(currentGraph, plotType):
+    fileName = generateFileName(plotType)
+    currentGraph.savefig(fileName, format="pdf")
+    with open(fileName, 'rb') as file:
+        pdf_data = file.read()
+    return pdf_data
+
+def detectOutliers(selectedColumn):
+    Q1 = selectedColumn.quantile(0.25)
+    Q3 = selectedColumn.quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    outliers = selectedColumn[(selectedColumn < lower_bound) | (selectedColumn > upper_bound)]
+    return outliers
+
