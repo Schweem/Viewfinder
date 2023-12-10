@@ -1,5 +1,5 @@
 # **Viewfinder**: *Data Exploration made simple*
-Viewfinder is an data exploration and visualization tool, designed to make the traversal of datasets both intuitive and simple. Built using Streamlit, Seaborn, Pandas, and Numpy, it offers a range of functionalities from basic statistical summaries to more complex visualizations.
+Viewfinder is a data exploration and visualization tool, designed to make the traversal of datasets both intuitive and simple. Built using Streamlit, Seaborn, Pandas, and Numpy, it offers a range of functionalities from basic statistical summaries to more complex visualizations.
 
 ## Screenshots
 ![image](https://github.com/Schweem/Viewfinder/assets/63567335/1343f89f-2391-496c-a7e4-e914d0ce265c)
